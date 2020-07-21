@@ -1,6 +1,15 @@
 defmodule ProtectedHelloWeb.Guardian do
-	use Guardian, otp_app: :protected_hello
-	alias ProtectedHelloWeb.UserStore
+  use Guardian,
+    otp_app: :protected_hello,
+    permissions: %{
+      keycloak: []
+    }
+
+  use Guardian.Permissions, encoding: Guardian.Permissions.TextEncoding
+
+  require Logger
+
+  alias ProtectedHelloWeb.UserStore
 
   def subject_for_token(resource, _claims) do
     # You can use any value for the subject of your token but
@@ -20,6 +29,24 @@ defmodule ProtectedHelloWeb.Guardian do
 
     id = claims["sub"]
     resource = UserStore.get_user_by_id(id)
-    {:ok,  resource}
+    {:ok, resource}
+  end
+
+  def build_claims(claims, resource, opts) do
+    Logger.info(
+      "\[Building claims\]: claims: #{inspect(claims)}, resource: #{inspect(resource)}, opts: #{
+        inspect(opts)
+      }"
+    )
+
+    # keycloak_roles =
+    #   claims
+    #   |> Map.get("resource_access", %{})
+    #   |> Map.get("phoenix-demo", %{})
+    #   |> Map.get("roles", [])
+
+    # new_claims = encode_permissions_into_claims!(claims, %{keycloak: keycloak_roles})
+
+    {:ok, claims}
   end
 end
